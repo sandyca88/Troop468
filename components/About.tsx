@@ -45,19 +45,18 @@ const About: React.FC = () => {
           </div>
 
           <div className="lg:col-span-5 relative">
-            <div className="aspect-[4/5] rounded-[3rem] overflow-hidden shadow-2xl relative z-10 bg-scout-khaki/20">
+            <div className="aspect-[4/5] rounded-[4rem] overflow-hidden shadow-2xl relative z-10 bg-scout-khaki/20 border-8 border-white">
               <img 
-                src="https://images.unsplash.com/photo-1510672854261-7bb3978d2347?auto=format&fit=crop&q=80&w=1200" 
-                alt="Troop 468 Scouts Group Outing" 
-                className="w-full h-full object-cover transition-opacity duration-500"
+                src="https://images.unsplash.com/photo-1533240332313-0db49b459ad6?auto=format&fit=crop&q=80&w=1200" 
+                alt="Troop 468 Scouts Nature Outing" 
+                className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                 onError={(e) => {
-                  // Fallback to a another reliable ID if this one fails
                   (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1523540939399-141cbff6a8d7?auto=format&fit=crop&q=80&w=1200";
                 }}
               />
             </div>
             {/* Decorative background element */}
-            <div className="absolute -top-10 -right-10 w-full h-full border-2 border-scout-accent/20 rounded-[3rem] -z-0" />
+            <div className="absolute -top-10 -right-10 w-full h-full border-2 border-scout-accent/20 rounded-[4rem] -z-0" />
             <div className="absolute -bottom-6 -right-6 bg-scout-dark text-white p-8 rounded-3xl shadow-xl z-20 max-w-[240px]">
               <History className="text-scout-accent w-8 h-8 mb-4" />
               <p className="text-sm font-bold leading-tight">Founded on the principles of the Scout Oath and Law since day one.</p>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useCms } from '../context/CmsContext';
 import { Edit2, Check, X } from 'lucide-react';
@@ -15,7 +14,7 @@ export const EditableText: React.FC<EditableProps> = ({ path, value, multiline =
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
 
-  if (!isAdmin) return <span className={className}>{value}</span>;
+  if (!isAdmin) return <span className={`whitespace-pre-line ${className}`}>{value}</span>;
 
   const handleSave = () => {
     updateContent(path, localValue);
@@ -34,7 +33,7 @@ export const EditableText: React.FC<EditableProps> = ({ path, value, multiline =
           <textarea
             value={localValue}
             onChange={(e) => setLocalValue(e.target.value)}
-            className="w-full bg-white text-scout-dark p-2 border-2 border-scout-accent rounded-lg outline-none"
+            className="w-full bg-white text-scout-dark p-2 border-2 border-scout-accent rounded-lg outline-none min-h-[100px]"
             autoFocus
           />
         ) : (
@@ -57,7 +56,7 @@ export const EditableText: React.FC<EditableProps> = ({ path, value, multiline =
   return (
     <div 
       onClick={() => setIsEditing(true)}
-      className={`relative inline-block group cursor-pointer border-2 border-dashed border-transparent hover:border-scout-accent/30 rounded px-1 -mx-1 transition-all ${className}`}
+      className={`relative inline-block group cursor-pointer border-2 border-dashed border-transparent hover:border-scout-accent/30 rounded px-1 -mx-1 transition-all whitespace-pre-line ${className}`}
     >
       {value}
       <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity translate-x-1/2 -translate-y-1/2 bg-scout-accent text-white p-1 rounded-full">

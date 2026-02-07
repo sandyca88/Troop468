@@ -2,8 +2,10 @@
 /**
  * Processes registration by opening the user's local email client 
  * pre-filled with the inquiry details for tosandy@gmail.com.
+ * This uses a more robust approach to satisfy browser security policies 
+ * by creating a temporary anchor element.
  */
-export const processRegistration = async (formData: any) => {
+export const processRegistration = (formData: any) => {
   const adminEmail = "tosandy@gmail.com";
   
   const subject = `[Troop 468] New Scout Inquiry: ${formData.scoutName}`;
@@ -14,7 +16,7 @@ I am interested in joining the troop! Here are my details:
 Scout Name: ${formData.scoutName}
 Age / Grade: ${formData.age}
 Parent Email: ${formData.parentEmail}
-Interests: ${formData.interests ? formData.interests.join(', ') : 'Not specified'}
+Interests: ${formData.interests && formData.interests.length > 0 ? formData.interests.join(', ') : 'Not specified'}
 
 Additional Note:
 ${formData.message || 'None provided'}
@@ -22,22 +24,40 @@ ${formData.message || 'None provided'}
 Looking forward to hearing from you!`;
 
   try {
-    // Generate the mailto link with encoded parameters
     const mailtoUrl = `mailto:${adminEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
-    // Open the user's default email client
-    window.location.href = mailtoUrl;
+    // Create a temporary anchor element to trigger the mailto
+    // This is generally more reliable than window.location.href in modern browsers
+    // as it explicitly simulates a user navigation.
+    const tempLink = document.createElement('a');
+    tempLink.href = mailtoUrl;
+    tempLink.style.display = 'none';
+    document.body.appendChild(tempLink);
+    tempLink.click();
+    
+    // Clean up
+    setTimeout(() => {
+      if (document.body.contains(tempLink)) {
+        document.body.removeChild(tempLink);
+      }
+    }, 500);
 
     return { 
       success: true, 
-      message: "Opening your email client... Please hit 'Send' in your mail app to finish!" 
+      message: "Success" 
     };
   } catch (error) {
     console.error("Registration Processing Error:", error);
-    return { 
-      success: false, 
-      message: "We couldn't open your email app. Please email tosandy@gmail.com directly." 
-    };
+    // Fallback to window.location if the anchor method fails
+    try {
+      window.location.href = `mailto:${adminEmail}`;
+      return { success: true, message: "Fallback triggered" };
+    } catch (innerError) {
+      return { 
+        success: false, 
+        message: "We couldn't open your email app. Please email tosandy@gmail.com directly." 
+      };
+    }
   }
 };
 

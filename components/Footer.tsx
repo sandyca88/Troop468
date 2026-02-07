@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Mail, MapPin, ExternalLink, Compass, Lock } from 'lucide-react';
 import BrandLogo from './BrandLogo';
@@ -12,7 +11,7 @@ const Footer: React.FC<FooterProps> = ({ navigateTo }) => {
   const { isAdmin } = useCms();
 
   return (
-    <footer className="bg-scout-dark text-white pt-32 pb-12 px-6 relative overflow-hidden">
+    <footer className="bg-scout-dark text-white pt-32 pb-8 px-6 relative overflow-hidden">
       {/* Decorative Pattern */}
       <div className="absolute top-0 right-0 opacity-5 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
         <Compass className="w-[400px] h-[400px]" strokeWidth={0.5} />
@@ -87,6 +86,16 @@ const Footer: React.FC<FooterProps> = ({ navigateTo }) => {
             <a href="#" className="hover:text-white transition-colors">Terms</a>
             <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
           </div>
+        </div>
+        
+        {/* Subtle Designer Credit */}
+        <div className="mt-12 text-center">
+          <a 
+            href="mailto:tosandy@gmail.com" 
+            className="text-[8px] font-medium uppercase tracking-[0.3em] text-white/10 hover:text-white/40 transition-colors select-none"
+          >
+            Design by Sandy
+          </a>
         </div>
       </div>
     </footer>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { CmsProvider } from './context/CmsContext';
 import Navbar from './components/Navbar';
@@ -9,7 +8,7 @@ import BenefitsSection from './components/Stats';
 import EquipmentSection from './components/EquipmentSection';
 import EquipmentArchive from './components/EquipmentArchive';
 import EagleSection from './components/EagleSection';
-import RegistrationFlow from './components/RegistrationFlow';
+import JoinForm from './components/JoinForm';
 import Footer from './components/Footer';
 import ActivitiesArchive from './components/ActivitiesArchive';
 import AdminToolbar from './components/AdminToolbar';
@@ -81,7 +80,7 @@ const AppContent: React.FC = () => {
             <EagleSection />
             
             <div id="join">
-              <RegistrationFlow />
+              <JoinForm />
             </div>
           </>
         ) : view === 'activities-archive' ? (

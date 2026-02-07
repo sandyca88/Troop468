@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Compass, ChevronRight, MapPin } from 'lucide-react';
 import { useCms } from '../context/CmsContext';
@@ -38,7 +37,7 @@ const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
           <EditableText path="hero.title" value={data.hero.title} />
         </h1>
         
-        <div className="text-xl md:text-2xl mb-10 text-white/80 max-w-3xl mx-auto font-light leading-relaxed animate-in fade-in slide-in-from-bottom duration-1200">
+        <div className="text-xl md:text-2xl mb-10 text-white/80 max-w-4xl mx-auto font-light leading-relaxed animate-in fade-in slide-in-from-bottom duration-1200 whitespace-pre-line">
           <EditableText path="hero.subtitle" value={data.hero.subtitle} multiline />
         </div>
         

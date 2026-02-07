@@ -1,23 +1,95 @@
-
 import React, { useState } from 'react';
-import { Calendar, ArrowRight, Tag, Camera, Edit2, Plus, ArrowUpRight } from 'lucide-react';
+import { Calendar, Tag, Camera, Edit2, Plus, ArrowUpRight, Image as ImageIcon, X, MapPin, Link as LinkIcon, AlignLeft, AlertCircle, Save } from 'lucide-react';
 import { UPCOMING_EVENTS } from '../constants';
 import { useCms } from '../context/CmsContext';
-import { EditableText } from './Editable';
+
+const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1523540939399-141cbff6a8d7?auto=format&fit=crop&q=80&w=1200";
 
 interface EventsSectionProps {
   onViewMore?: () => void;
-  onEditAlbum?: (index: number) => void;
 }
 
 const EventsSection: React.FC<EventsSectionProps> = ({ onViewMore }) => {
   const [activeTab, setActiveTab] = useState<'past' | 'upcoming'>('past');
-  const { data, isAdmin } = useCms();
+  const { data, isAdmin, updateAlbum, addAlbum, saveChanges } = useCms();
 
-  const handleAlbumClick = (url: string) => {
-    if (!isAdmin && url) {
-      window.open(url, '_blank', 'noopener,noreferrer');
+  // Modal State for Home Page Editing
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
+  const [formState, setFormState] = useState({
+    title: '',
+    year: 'Summer ' + new Date().getFullYear().toString(),
+    url: '',
+    count: '0+',
+    image: FALLBACK_IMAGE,
+    description: '',
+    location: ''
+  });
+
+  const handleCardClick = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const openEditModal = (e: React.MouseEvent, idx: number) => {
+    e.stopPropagation();
+    const album = data.albums[idx];
+    setModalMode('edit');
+    setActiveIndex(idx);
+    setFormState({
+      title: album.title,
+      year: album.year,
+      url: album.url,
+      count: album.count,
+      image: album.image || FALLBACK_IMAGE,
+      description: album.description || '',
+      location: album.location || ''
+    });
+    setIsModalOpen(true);
+  };
+
+  const openAddModal = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setModalMode('add');
+    setActiveIndex(null);
+    setFormState({
+      title: '',
+      year: 'Summer ' + new Date().getFullYear().toString(),
+      url: '',
+      count: '0+',
+      image: FALLBACK_IMAGE,
+      description: '',
+      location: ''
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSave = () => {
+    if (!formState.title || !formState.url) {
+      alert("Please provide a Title and a Link to the gallery.");
+      return;
     }
+
+    const albumData = {
+      title: formState.title,
+      year: formState.year,
+      url: formState.url,
+      count: formState.count,
+      image: formState.image,
+      description: formState.description,
+      location: formState.location,
+      type: 'photo' as const
+    };
+
+    if (modalMode === 'add') {
+      addAlbum(albumData);
+    } else if (activeIndex !== null) {
+      updateAlbum(activeIndex, albumData);
+    }
+
+    // Explicitly trigger a persist check
+    setTimeout(() => saveChanges(), 50);
+    setIsModalOpen(false);
   };
 
   return (
@@ -31,7 +103,6 @@ const EventsSection: React.FC<EventsSectionProps> = ({ onViewMore }) => {
               Life Outside <br /> The Ordinary
             </h2>
             
-            {/* Tab Switcher */}
             <div className="flex space-x-2 bg-scout-light p-1.5 rounded-[1.5rem] w-fit border border-scout-khaki">
               <button 
                 onClick={() => setActiveTab('past')}
@@ -58,7 +129,7 @@ const EventsSection: React.FC<EventsSectionProps> = ({ onViewMore }) => {
                 className="flex items-center space-x-3 text-scout-accent font-black uppercase tracking-[0.2em] text-xs hover:underline decoration-2 underline-offset-8 group"
               >
                 <Camera className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <span>Manage Full Archive</span>
+                <span>Explore Full Archive</span>
               </button>
             )}
           </div>
@@ -68,37 +139,30 @@ const EventsSection: React.FC<EventsSectionProps> = ({ onViewMore }) => {
         {activeTab === 'past' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-20">
             {data.albums.slice(0, 4).map((album, idx) => (
-              <div key={idx} className="group">
-                {/* Image Container with Edit Shortcut */}
-                <div 
-                  className="relative aspect-[16/11] rounded-[3rem] overflow-hidden mb-8 shadow-2xl border border-scout-khaki bg-scout-light cursor-pointer"
-                  onClick={() => handleAlbumClick(album.url)}
-                >
+              <div key={idx} className="group cursor-pointer" onClick={() => handleCardClick(album.url)}>
+                <div className="relative aspect-[16/11] rounded-[3rem] overflow-hidden mb-8 shadow-2xl border border-scout-khaki bg-scout-light transition-all group-hover:shadow-scout-accent/20">
                   <img 
                     src={album.image} 
                     alt={album.title}
+                    onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMAGE; }}
                     className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                   />
                   
-                  {/* Edit Shortcut for Admins */}
                   {isAdmin && (
                     <button 
-                      onClick={(e) => { e.stopPropagation(); onViewMore?.(); }}
+                      onClick={(e) => openEditModal(e, idx)}
                       className="absolute top-8 right-8 bg-scout-accent text-white p-4 rounded-2xl shadow-2xl hover:scale-110 transition-all border-2 border-white z-20"
-                      title="Manage in Archive"
+                      title="Edit Directly"
                     >
                       <Edit2 size={20} />
                     </button>
                   )}
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-scout-dark/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none flex items-center justify-center">
-                     <span className="bg-white/20 backdrop-blur-md text-white px-6 py-3 rounded-full font-black text-[10px] uppercase tracking-widest border border-white/20">Open Gallery</span>
-                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-scout-dark/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 </div>
 
-                {/* Content Details */}
                 <div className="flex justify-between items-start px-2">
-                  <div className="flex-1 cursor-pointer" onClick={() => handleAlbumClick(album.url)}>
+                  <div className="flex-1">
                     <h3 className="text-4xl font-black text-scout-dark font-serif mb-3 group-hover:text-scout-accent transition-colors leading-tight">
                       {album.title}
                     </h3>
@@ -109,20 +173,16 @@ const EventsSection: React.FC<EventsSectionProps> = ({ onViewMore }) => {
                     </div>
                   </div>
                   
-                  <div 
-                    onClick={() => handleAlbumClick(album.url)}
-                    className="w-16 h-16 rounded-[1.5rem] border-2 border-scout-khaki flex items-center justify-center cursor-pointer group-hover:bg-scout-accent group-hover:border-scout-accent group-hover:text-white transition-all transform group-hover:rotate-12 shrink-0 ml-6"
-                  >
+                  <div className="w-16 h-16 rounded-[1.5rem] border-2 border-scout-khaki flex items-center justify-center group-hover:bg-scout-accent group-hover:border-scout-accent group-hover:text-white transition-all transform group-hover:rotate-12 shrink-0 ml-6">
                     <ArrowUpRight className="w-6 h-6" />
                   </div>
                 </div>
               </div>
             ))}
 
-            {/* Admin: Quick Add Placeholder if less than 4 items */}
-            {isAdmin && data.albums.length < 4 && (
+            {isAdmin && (
               <button 
-                onClick={onViewMore}
+                onClick={openAddModal}
                 className="flex flex-col items-center justify-center aspect-[16/11] rounded-[3rem] border-4 border-dashed border-scout-khaki hover:border-scout-accent hover:bg-scout-accent/5 transition-all text-scout-khaki hover:text-scout-accent group"
               >
                 <Plus size={48} className="mb-4 group-hover:scale-110 transition-transform" />
@@ -131,7 +191,6 @@ const EventsSection: React.FC<EventsSectionProps> = ({ onViewMore }) => {
             )}
           </div>
         ) : (
-          /* Upcoming Events Tab Content */
           <div className="space-y-6">
             {UPCOMING_EVENTS.map((event) => (
               <div key={event.id} className="bg-scout-light hover:bg-white hover:shadow-2xl hover:-translate-y-1 border border-scout-khaki p-10 rounded-[3rem] transition-all flex flex-col md:flex-row items-center justify-between group">
@@ -159,6 +218,110 @@ const EventsSection: React.FC<EventsSectionProps> = ({ onViewMore }) => {
           </div>
         )}
       </div>
+
+      {/* Editor Modal for Home Page */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-scout-dark/70 backdrop-blur-lg p-6 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[3rem] p-8 max-w-2xl w-full shadow-2xl border border-scout-khaki relative overflow-hidden overflow-y-auto max-h-[90vh]">
+            <div className="absolute top-0 left-0 w-full h-2 bg-scout-accent" />
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-3xl font-black font-serif text-scout-dark">
+                {modalMode === 'add' ? 'New Album' : 'Edit Album'}
+              </h3>
+              <button onClick={() => setIsModalOpen(false)} className="p-3 bg-scout-light text-scout-dark rounded-2xl flex items-center justify-center hover:bg-scout-khaki/20 transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div className="mb-8">
+                <label className="block text-[10px] font-black uppercase tracking-widest text-scout-dark/40 mb-3 px-1">Live Cover Preview</label>
+                <div className="relative aspect-[16/9] rounded-[2rem] overflow-hidden bg-scout-light border-2 border-scout-khaki shadow-inner">
+                  <img 
+                    src={formState.image} 
+                    alt="Preview" 
+                    onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMAGE; }}
+                    className="w-full h-full object-cover" 
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-scout-dark/40 mb-2 px-1">
+                  Album Title <span className="text-scout-accent ml-1 font-bold">(Required)</span>
+                </label>
+                <input 
+                  type="text" 
+                  value={formState.title}
+                  onChange={(e) => setFormState({ ...formState, title: e.target.value })}
+                  className="w-full bg-scout-light border border-scout-khaki p-5 rounded-2xl outline-none focus:ring-2 focus:ring-scout-accent font-bold"
+                  placeholder="e.g. Summer Camp 2024"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-scout-dark/40 mb-2 px-1">Season / Year</label>
+                  <input 
+                    type="text" 
+                    value={formState.year}
+                    onChange={(e) => setFormState({ ...formState, year: e.target.value })}
+                    className="w-full bg-scout-light border border-scout-khaki p-5 rounded-2xl outline-none focus:ring-2 focus:ring-scout-accent font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-scout-dark/40 mb-2 px-1">Item Count</label>
+                  <input 
+                    type="text" 
+                    value={formState.count}
+                    onChange={(e) => setFormState({ ...formState, count: e.target.value })}
+                    className="w-full bg-scout-light border border-scout-khaki p-5 rounded-2xl outline-none focus:ring-2 focus:ring-scout-accent font-bold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-scout-dark/40 mb-2 px-1">Cover Image URL</label>
+                <input 
+                  type="text" 
+                  value={formState.image}
+                  onChange={(e) => setFormState({ ...formState, image: e.target.value })}
+                  className="w-full bg-scout-light border border-scout-khaki p-5 rounded-2xl outline-none focus:ring-2 focus:ring-scout-accent font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-scout-dark/40 mb-2 px-1">
+                  Gallery URL <span className="text-scout-accent ml-1 font-bold">(Required)</span>
+                </label>
+                <input 
+                  type="text" 
+                  value={formState.url}
+                  onChange={(e) => setFormState({ ...formState, url: e.target.value })}
+                  className="w-full bg-scout-light border border-scout-khaki p-5 rounded-2xl outline-none focus:ring-2 focus:ring-scout-accent font-bold"
+                  placeholder="Paste Google Photos link here..."
+                />
+              </div>
+            </div>
+
+            <div className="mt-10 flex space-x-4">
+              <button 
+                onClick={handleSave}
+                className="flex-1 bg-scout-dark text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-scout-accent transition-all flex items-center justify-center space-x-3 shadow-xl"
+              >
+                <Save size={18} />
+                <span>{modalMode === 'add' ? 'Publish Album' : 'Update Album'}</span>
+              </button>
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="px-10 bg-scout-khaki/20 text-scout-dark py-6 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-scout-khaki transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

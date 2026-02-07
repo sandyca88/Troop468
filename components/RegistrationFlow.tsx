@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { ChevronRight, ChevronLeft, Mail, Check } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Mail, Check, Sparkles } from 'lucide-react';
 import { processRegistration } from '../services/geminiService';
 
 const RegistrationFlow: React.FC = () => {
@@ -26,14 +25,19 @@ const RegistrationFlow: React.FC = () => {
     }));
   };
 
-  const handleFinalSubmit = async () => {
+  const handleFinalSubmit = () => {
     setIsSubmitting(true);
-    // This now triggers window.location.href = mailto:tosandy@gmail.com
-    const result = await processRegistration(formData);
-    setIsSubmitting(false);
+    
+    // Triggers the registration processing in the background
+    const result = processRegistration(formData);
+    
     if (result.success) {
-      setStep(4); // Success step
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setStep(4); // Success step
+      }, 800);
     } else {
+      setIsSubmitting(false);
       alert(result.message || "Something went wrong. Please try again later.");
     }
   };
@@ -128,12 +132,12 @@ const RegistrationFlow: React.FC = () => {
       case 4:
         return (
           <div className="text-center py-16 animate-in zoom-in duration-700 flex flex-col items-center">
-            <div className="w-24 h-24 bg-scout-accent text-white rounded-full flex items-center justify-center mb-10 shadow-[0_20px_50px_rgba(217,119,6,0.3)]">
-              <Mail className="w-12 h-12 stroke-[2px]" />
+            <div className="w-24 h-24 bg-scout-green text-white rounded-full flex items-center justify-center mb-10 shadow-[0_20px_50px_rgba(45,75,51,0.3)]">
+              <Check className="w-12 h-12 stroke-[3px]" />
             </div>
-            <h3 className="text-5xl font-black text-scout-dark font-serif mb-6 leading-tight">Check Your Email!</h3>
+            <h3 className="text-5xl font-black text-scout-dark font-serif mb-6 leading-tight">Inquiry Received!</h3>
             <p className="text-xl text-scout-dark/60 max-w-sm mx-auto mb-12 leading-relaxed font-light">
-              We've pre-filled an email to <b>tosandy@gmail.com</b> in your mail app. Hit 'Send' to finish your inquiry!
+              Thank you for your interest in Troop 468. Your inquiry has been processed and our leadership team will reach out to you shortly to schedule your first visit!
             </p>
             <button 
               onClick={() => {
@@ -148,7 +152,7 @@ const RegistrationFlow: React.FC = () => {
               }} 
               className="text-scout-accent font-black uppercase tracking-[0.3em] text-xs underline decoration-2 underline-offset-8 hover:text-scout-dark transition-colors"
             >
-              START OVER
+              SEND ANOTHER INQUIRY
             </button>
           </div>
         );
@@ -192,13 +196,13 @@ const RegistrationFlow: React.FC = () => {
                   {isSubmitting ? (
                     <span className="flex items-center space-x-3">
                       <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                      <span>OPENING MAIL...</span>
+                      <span>SENDING...</span>
                     </span>
                   ) : (
                     <>
                       <span className="flex items-center">
                         {step === totalSteps && <Mail className="w-4 h-4 mr-3" />}
-                        {step === totalSteps ? 'SEND INQUIRY' : 'CONTINUE'}
+                        {step === totalSteps ? 'COMPLETE INQUIRY' : 'CONTINUE'}
                       </span>
                       {step !== totalSteps && <ChevronRight className="ml-3 w-4 h-4 group-hover:translate-x-1 transition-transform" />}
                     </>
