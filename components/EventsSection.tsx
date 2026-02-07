@@ -14,6 +14,12 @@ const EventsSection: React.FC<EventsSectionProps> = ({ onViewMore }) => {
   const [activeTab, setActiveTab] = useState<'past' | 'upcoming'>('past');
   const { data, isAdmin } = useCms();
 
+  const handleAlbumClick = (url: string) => {
+    if (!isAdmin && url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <section id="activities" className="py-32 px-6 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto">
@@ -52,7 +58,7 @@ const EventsSection: React.FC<EventsSectionProps> = ({ onViewMore }) => {
                 className="flex items-center space-x-3 text-scout-accent font-black uppercase tracking-[0.2em] text-xs hover:underline decoration-2 underline-offset-8 group"
               >
                 <Camera className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <span>Explore Full Archive</span>
+                <span>Manage Full Archive</span>
               </button>
             )}
           </div>
@@ -62,14 +68,16 @@ const EventsSection: React.FC<EventsSectionProps> = ({ onViewMore }) => {
         {activeTab === 'past' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-20">
             {data.albums.slice(0, 4).map((album, idx) => (
-              <div key={idx} className="group cursor-pointer">
+              <div key={idx} className="group">
                 {/* Image Container with Edit Shortcut */}
-                <div className="relative aspect-[16/11] rounded-[3rem] overflow-hidden mb-8 shadow-2xl border border-scout-khaki bg-scout-light">
+                <div 
+                  className="relative aspect-[16/11] rounded-[3rem] overflow-hidden mb-8 shadow-2xl border border-scout-khaki bg-scout-light cursor-pointer"
+                  onClick={() => handleAlbumClick(album.url)}
+                >
                   <img 
                     src={album.image} 
                     alt={album.title}
                     className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                    onClick={() => !isAdmin && onViewMore?.()}
                   />
                   
                   {/* Edit Shortcut for Admins */}
@@ -83,12 +91,14 @@ const EventsSection: React.FC<EventsSectionProps> = ({ onViewMore }) => {
                     </button>
                   )}
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-scout-dark/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-scout-dark/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none flex items-center justify-center">
+                     <span className="bg-white/20 backdrop-blur-md text-white px-6 py-3 rounded-full font-black text-[10px] uppercase tracking-widest border border-white/20">Open Gallery</span>
+                  </div>
                 </div>
 
                 {/* Content Details */}
                 <div className="flex justify-between items-start px-2">
-                  <div className="flex-1" onClick={() => !isAdmin && onViewMore?.()}>
+                  <div className="flex-1 cursor-pointer" onClick={() => handleAlbumClick(album.url)}>
                     <h3 className="text-4xl font-black text-scout-dark font-serif mb-3 group-hover:text-scout-accent transition-colors leading-tight">
                       {album.title}
                     </h3>
@@ -100,8 +110,8 @@ const EventsSection: React.FC<EventsSectionProps> = ({ onViewMore }) => {
                   </div>
                   
                   <div 
-                    onClick={() => !isAdmin && onViewMore?.()}
-                    className="w-16 h-16 rounded-[1.5rem] border-2 border-scout-khaki flex items-center justify-center group-hover:bg-scout-accent group-hover:border-scout-accent group-hover:text-white transition-all transform group-hover:rotate-12 shrink-0 ml-6"
+                    onClick={() => handleAlbumClick(album.url)}
+                    className="w-16 h-16 rounded-[1.5rem] border-2 border-scout-khaki flex items-center justify-center cursor-pointer group-hover:bg-scout-accent group-hover:border-scout-accent group-hover:text-white transition-all transform group-hover:rotate-12 shrink-0 ml-6"
                   >
                     <ArrowUpRight className="w-6 h-6" />
                   </div>

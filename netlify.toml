@@ -1,0 +1,12 @@
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[build]
+  publish = "."
+  command = "" # No build command needed for this ESM-based site
+
+[context.production.environment]
+  NODE_VERSION = "20"

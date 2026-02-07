@@ -1,9 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ExternalLink, Image as ImageIcon, Film, Calendar, Plus, Trash2, Link as LinkIcon, X, Check, Save, Sparkles, RefreshCw, MapPin, AlignLeft } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Image as ImageIcon, Film, Calendar, Plus, Trash2, Link as LinkIcon, X, Save, MapPin, AlignLeft } from 'lucide-react';
 import { useCms } from '../context/CmsContext';
-import { getAlbumItemCount } from '../services/geminiService';
-import { EditableText } from './Editable';
 
 const ActivitiesArchive: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const { data, isAdmin, addAlbum, removeAlbum, updateContent } = useCms();
@@ -12,7 +10,6 @@ const ActivitiesArchive: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
   
   // Form State
   const [formState, setFormState] = useState({
@@ -25,7 +22,6 @@ const ActivitiesArchive: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     location: ''
   });
 
-  // Automatically open add modal if we just arrived as admin with no albums or via intent
   useEffect(() => {
     if (isAdmin && data.albums.length === 0) {
       openAddModal();
@@ -63,22 +59,6 @@ const ActivitiesArchive: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     setIsModalOpen(true);
   };
 
-  const handleSyncCount = async () => {
-    if (!formState.url) {
-      alert("Please enter a Google Photos URL first.");
-      return;
-    }
-    setIsSyncing(true);
-    try {
-      const detectedCount = await getAlbumItemCount(formState.url);
-      setFormState(prev => ({ ...prev, count: detectedCount.includes('+') ? detectedCount : `${detectedCount}+` }));
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
   const handleSave = () => {
     if (!formState.title || !formState.url) {
       alert("Please provide a Title and a Link to the gallery.");
@@ -109,7 +89,6 @@ const ActivitiesArchive: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     }
 
     setIsModalOpen(false);
-    alert("Changes updated! Check the Home Page to see the reflection. Don't forget to click 'Save Changes' at the bottom!");
   };
 
   const handleDelete = (e: React.MouseEvent, idx: number) => {
@@ -144,7 +123,6 @@ const ActivitiesArchive: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {/* Admin Add New Card */}
           {isAdmin && (
             <button 
               onClick={openAddModal}
@@ -159,22 +137,14 @@ const ActivitiesArchive: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
           {data.albums.map((album, idx) => (
             <div key={idx} className="group relative">
-              {/* Admin Overlay Controls */}
               {isAdmin && (
                 <div className="absolute top-10 left-1/2 -translate-x-1/2 z-40 flex space-x-5 opacity-0 group-hover:opacity-100 transition-all transform group-hover:-translate-y-3 pointer-events-auto">
                   <button 
                     onClick={(e) => { e.preventDefault(); openEditModal(idx); }}
                     className="w-16 h-16 bg-scout-accent text-white rounded-[1.5rem] shadow-2xl hover:scale-110 transition-all border-[3px] border-white flex items-center justify-center"
-                    title="Edit Details & Link"
+                    title="Edit Details"
                   >
                     <LinkIcon size={28} />
-                  </button>
-                  <button 
-                    onClick={(e) => { e.preventDefault(); openEditModal(idx); }}
-                    className="w-16 h-16 bg-white text-scout-dark rounded-[1.5rem] shadow-2xl hover:scale-110 transition-all border-[3px] border-scout-khaki flex items-center justify-center"
-                    title="Change Cover Image"
-                  >
-                    <ImageIcon size={28} />
                   </button>
                   <button 
                     onClick={(e) => handleDelete(e, idx)}
@@ -193,45 +163,22 @@ const ActivitiesArchive: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 className="block outline-none"
               >
                 <div className="relative aspect-square rounded-[2.5rem] overflow-hidden mb-6 shadow-xl border border-scout-khaki bg-white">
-                  <img 
-                    src={album.image} 
-                    alt={album.title} 
-                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" 
-                  />
-                  
+                  <img src={album.image} alt={album.title} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-scout-dark/80 via-transparent to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
-                  
-                  {!isAdmin && (
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                      <div className="bg-white/20 backdrop-blur-xl border border-white/30 px-6 py-3 rounded-2xl flex items-center space-x-3 text-white">
-                        <span className="font-black text-xs uppercase tracking-widest">Visit Gallery</span>
-                        <ExternalLink size={14} />
-                      </div>
+                  <div className="absolute bottom-8 left-8 right-8 text-white flex items-center space-x-3">
+                    <div className="p-2 bg-scout-green rounded-xl">
+                      <ImageIcon size={16} />
                     </div>
-                  )}
-
-                  <div className="absolute bottom-8 left-8 right-8">
-                    <div className="flex items-center space-x-3 text-white">
-                      <div className="p-2 bg-scout-green rounded-xl">
-                        {album.type === 'photo' ? <ImageIcon size={16} /> : <Film size={16} />}
-                      </div>
-                      <span className="text-sm font-black uppercase tracking-widest">
-                        {album.count} ITEMS
-                      </span>
-                    </div>
+                    <span className="text-sm font-black uppercase tracking-widest">{album.count} ITEMS</span>
                   </div>
                 </div>
               </a>
               
               <div className="px-2">
-                <h3 className="text-2xl font-bold text-scout-dark font-serif mb-1 group-hover:text-scout-accent transition-colors">
-                  {album.title}
-                </h3>
+                <h3 className="text-2xl font-bold text-scout-dark font-serif mb-1 group-hover:text-scout-accent transition-colors">{album.title}</h3>
                 <div className="flex items-center space-x-2">
                   <Calendar size={12} className="text-scout-accent" />
-                  <p className="text-scout-dark/40 font-black text-[10px] uppercase tracking-[0.2em]">
-                    {album.year} Expedition
-                  </p>
+                  <p className="text-scout-dark/40 font-black text-[10px] uppercase tracking-[0.2em]">{album.year}</p>
                 </div>
               </div>
             </div>
@@ -239,143 +186,46 @@ const ActivitiesArchive: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         </div>
       </div>
 
-      {/* Unified Album Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-scout-dark/70 backdrop-blur-lg p-6 animate-in fade-in duration-300 overflow-y-auto">
-          <div className="bg-white rounded-[3rem] p-10 max-w-xl w-full shadow-2xl animate-in zoom-in duration-300 border border-scout-khaki relative overflow-hidden my-auto">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-scout-dark/70 backdrop-blur-lg p-6 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[3rem] p-10 max-w-xl w-full shadow-2xl border border-scout-khaki relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-2 bg-scout-accent" />
-            
             <div className="flex justify-between items-center mb-8">
-              <div>
-                <span className="text-scout-accent font-black tracking-widest uppercase text-[10px] block mb-1">
-                  {modalMode === 'add' ? 'System New Entry' : 'Update Record'}
-                </span>
-                <h3 className="text-4xl font-black font-serif text-scout-dark">
-                  {modalMode === 'add' ? 'Create New Album' : 'Edit Album Details'}
-                </h3>
-              </div>
-              <button 
-                onClick={() => setIsModalOpen(false)}
-                className="p-3 bg-scout-light text-scout-dark rounded-2xl hover:bg-scout-accent hover:text-white transition-all shadow-sm"
-              >
-                <X size={20} />
-              </button>
+              <h3 className="text-4xl font-black font-serif text-scout-dark">
+                {modalMode === 'add' ? 'New Album' : 'Edit Album'}
+              </h3>
+              <button onClick={() => setIsModalOpen(false)} className="p-3 bg-scout-light text-scout-dark rounded-2xl hover:bg-scout-accent hover:text-white transition-all"><X size={20} /></button>
             </div>
             
             <div className="space-y-4 mb-8">
-              <div className="group">
-                <label className="block text-[10px] font-black uppercase tracking-widest text-scout-dark/40 mb-1.5 px-1">Adventure Name</label>
-                <input 
-                  type="text"
-                  value={formState.title}
-                  onChange={(e) => setFormState({...formState, title: e.target.value})}
-                  className="w-full bg-scout-light border border-scout-khaki p-4 rounded-2xl outline-none focus:ring-2 focus:ring-scout-accent font-bold text-scout-dark transition-all"
-                  placeholder="e.g. High Sierra Trek"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-scout-dark/40 mb-1.5 px-1">Time/Season</label>
-                  <input 
-                    type="text"
-                    value={formState.year}
-                    onChange={(e) => setFormState({...formState, year: e.target.value})}
-                    className="w-full bg-scout-light border border-scout-khaki p-4 rounded-2xl outline-none focus:ring-2 focus:ring-scout-accent font-bold text-scout-dark transition-all"
-                    placeholder="e.g. Summer 2024"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-scout-dark/40 mb-1.5 px-1">Location</label>
-                  <div className="relative">
-                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-scout-accent" size={14} />
-                    <input 
-                      type="text"
-                      value={formState.location}
-                      onChange={(e) => setFormState({...formState, location: e.target.value})}
-                      className="w-full bg-scout-light border border-scout-khaki p-4 pl-10 rounded-2xl outline-none focus:ring-2 focus:ring-scout-accent font-bold text-scout-dark transition-all"
-                      placeholder="e.g. Yosemite National Park"
-                    />
-                  </div>
-                </div>
-              </div>
-
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-scout-dark/40 mb-1.5 px-1">Short Description (For Home Page)</label>
-                <div className="relative">
-                  <AlignLeft className="absolute left-4 top-4 text-scout-dark/30" size={14} />
-                  <textarea 
-                    value={formState.description}
-                    onChange={(e) => setFormState({...formState, description: e.target.value})}
-                    className="w-full bg-scout-light border border-scout-khaki p-4 pl-10 rounded-2xl outline-none focus:ring-2 focus:ring-scout-accent font-medium text-sm text-scout-dark transition-all h-20 resize-none"
-                    placeholder="Describe the adventure in 1-2 sentences..."
-                  />
-                </div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-scout-dark/40 mb-1.5 px-1">Album Name</label>
+                <input type="text" value={formState.title} onChange={(e) => setFormState({...formState, title: e.target.value})} className="w-full bg-scout-light border border-scout-khaki p-4 rounded-2xl outline-none focus:ring-2 focus:ring-scout-accent font-bold" />
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-scout-dark/40 mb-1.5 px-1">Google Photos Link</label>
-                  <div className="relative">
-                    <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-scout-accent" size={14} />
-                    <input 
-                      type="text"
-                      value={formState.url}
-                      onChange={(e) => setFormState({...formState, url: e.target.value})}
-                      className="w-full bg-scout-light border border-scout-khaki p-4 pl-10 rounded-2xl outline-none focus:ring-2 focus:ring-scout-accent font-bold text-scout-accent text-xs truncate"
-                      placeholder="https://photos.google.com/..."
-                    />
-                  </div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-scout-dark/40 mb-1.5 px-1">Season</label>
+                  <input type="text" value={formState.year} onChange={(e) => setFormState({...formState, year: e.target.value})} className="w-full bg-scout-light border border-scout-khaki p-4 rounded-2xl outline-none" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-scout-dark/40 mb-1.5 px-1">Item Count (AI Sync)</label>
-                  <div className="flex space-x-2">
-                    <input 
-                      type="text"
-                      value={formState.count}
-                      onChange={(e) => setFormState({...formState, count: e.target.value})}
-                      className="flex-1 bg-scout-light border border-scout-khaki p-4 rounded-2xl outline-none focus:ring-2 focus:ring-scout-accent font-bold text-scout-dark"
-                    />
-                    <button 
-                      onClick={handleSyncCount}
-                      disabled={isSyncing}
-                      className="bg-scout-accent text-white px-4 rounded-2xl hover:bg-scout-dark transition-all flex items-center justify-center shadow-lg disabled:opacity-50"
-                    >
-                      {isSyncing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                    </button>
-                  </div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-scout-dark/40 mb-1.5 px-1">Item Count</label>
+                  <input type="text" value={formState.count} onChange={(e) => setFormState({...formState, count: e.target.value})} className="w-full bg-scout-light border border-scout-khaki p-4 rounded-2xl outline-none" />
                 </div>
               </div>
-
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-scout-dark/40 mb-1.5 px-1">Google Photos Link</label>
+                <input type="text" value={formState.url} onChange={(e) => setFormState({...formState, url: e.target.value})} className="w-full bg-scout-light border border-scout-khaki p-4 rounded-2xl outline-none" />
+              </div>
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-widest text-scout-dark/40 mb-1.5 px-1">Cover Image URL</label>
-                <div className="relative">
-                   <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-scout-dark/30" size={14} />
-                   <input 
-                    type="text"
-                    value={formState.image}
-                    onChange={(e) => setFormState({...formState, image: e.target.value})}
-                    className="w-full bg-scout-light border border-scout-khaki p-4 pl-10 rounded-2xl outline-none focus:ring-2 focus:ring-scout-accent text-[10px] font-mono text-scout-dark/50"
-                  />
-                </div>
+                <input type="text" value={formState.image} onChange={(e) => setFormState({...formState, image: e.target.value})} className="w-full bg-scout-light border border-scout-khaki p-4 rounded-2xl outline-none" />
               </div>
             </div>
 
-            <div className="flex space-x-4">
-              <button 
-                onClick={handleSave}
-                className="flex-[2] bg-scout-dark text-white p-5 rounded-[1.5rem] font-black uppercase tracking-widest text-xs hover:bg-scout-accent transition-all flex items-center justify-center space-x-3 shadow-xl transform active:scale-95"
-              >
-                <Save size={18} />
-                <span>{modalMode === 'add' ? 'Confirm & Create' : 'Save Changes'}</span>
-              </button>
-              <button 
-                onClick={() => setIsModalOpen(false)}
-                className="flex-1 bg-scout-khaki/10 text-scout-dark/40 p-5 rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] hover:bg-scout-khaki/20 transition-all"
-              >
-                Discard
-              </button>
-            </div>
+            <button onClick={handleSave} className="w-full bg-scout-dark text-white p-5 rounded-[1.5rem] font-black uppercase tracking-widest text-xs hover:bg-scout-accent transition-all flex items-center justify-center space-x-3 shadow-xl">
+              <Save size={18} />
+              <span>Confirm</span>
+            </button>
           </div>
         </div>
       )}

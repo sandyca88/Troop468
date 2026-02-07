@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ChevronRight, ChevronLeft, Send, Sparkles, Check, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Mail, Check } from 'lucide-react';
 import { processRegistration } from '../services/geminiService';
 
 const RegistrationFlow: React.FC = () => {
@@ -28,12 +28,13 @@ const RegistrationFlow: React.FC = () => {
 
   const handleFinalSubmit = async () => {
     setIsSubmitting(true);
+    // This now triggers window.location.href = mailto:tosandy@gmail.com
     const result = await processRegistration(formData);
     setIsSubmitting(false);
     if (result.success) {
       setStep(4); // Success step
     } else {
-      alert("Something went wrong. Please try again or email us directly at tosandy@gmail.com");
+      alert(result.message || "Something went wrong. Please try again later.");
     }
   };
 
@@ -127,12 +128,12 @@ const RegistrationFlow: React.FC = () => {
       case 4:
         return (
           <div className="text-center py-16 animate-in zoom-in duration-700 flex flex-col items-center">
-            <div className="w-24 h-24 bg-scout-accent text-white rounded-full flex items-center justify-center mb-10 shadow-[0_20px_50px_rgba(217,119,6,0.3)] transform transition-transform hover:scale-105">
-              <Check className="w-12 h-12 stroke-[4px]" />
+            <div className="w-24 h-24 bg-scout-accent text-white rounded-full flex items-center justify-center mb-10 shadow-[0_20px_50px_rgba(217,119,6,0.3)]">
+              <Mail className="w-12 h-12 stroke-[2px]" />
             </div>
-            <h3 className="text-5xl font-black text-scout-dark font-serif mb-6 leading-tight">Adventure Confirmed!</h3>
+            <h3 className="text-5xl font-black text-scout-dark font-serif mb-6 leading-tight">Check Your Email!</h3>
             <p className="text-xl text-scout-dark/60 max-w-sm mx-auto mb-12 leading-relaxed font-light">
-              We've received your inquiry. A Scout Leader will reach out shortly to welcome you to our next Thursday evening or Saturday afternoon meeting!
+              We've pre-filled an email to <b>tosandy@gmail.com</b> in your mail app. Hit 'Send' to finish your inquiry!
             </p>
             <button 
               onClick={() => {
@@ -180,7 +181,7 @@ const RegistrationFlow: React.FC = () => {
                   disabled={step === 1 || isSubmitting}
                   className={`flex items-center space-x-2 font-black uppercase tracking-widest text-xs transition-all ${step === 1 || isSubmitting ? 'opacity-0 pointer-events-none' : 'text-scout-dark/30 hover:text-scout-dark'}`}
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                   <span>Back</span>
                 </button>
                 <button 
@@ -191,23 +192,21 @@ const RegistrationFlow: React.FC = () => {
                   {isSubmitting ? (
                     <span className="flex items-center space-x-3">
                       <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                      <span>SENDING...</span>
+                      <span>OPENING MAIL...</span>
                     </span>
                   ) : (
                     <>
-                      <span>{step === totalSteps ? 'SEND INQUIRY' : 'CONTINUE'}</span>
-                      <ChevronRight className="ml-3 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      <span className="flex items-center">
+                        {step === totalSteps && <Mail className="w-4 h-4 mr-3" />}
+                        {step === totalSteps ? 'SEND INQUIRY' : 'CONTINUE'}
+                      </span>
+                      {step !== totalSteps && <ChevronRight className="ml-3 w-4 h-4 group-hover:translate-x-1 transition-transform" />}
                     </>
                   )}
                 </button>
               </div>
             )}
           </div>
-        </div>
-
-        <div className="mt-12 flex items-center justify-center space-x-3 text-scout-dark/30 italic">
-          <Sparkles className="w-4 h-4 text-scout-accent opacity-50" />
-          <span className="text-sm font-medium">Joining Troop 468 is the beginning of a lifelong brotherhood.</span>
         </div>
       </div>
     </section>
