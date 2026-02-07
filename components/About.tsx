@@ -45,11 +45,15 @@ const About: React.FC = () => {
           </div>
 
           <div className="lg:col-span-5 relative">
-            <div className="aspect-[4/5] rounded-[3rem] overflow-hidden shadow-2xl relative z-10">
+            <div className="aspect-[4/5] rounded-[3rem] overflow-hidden shadow-2xl relative z-10 bg-scout-khaki/20">
               <img 
-                src="https://images.unsplash.com/photo-1526749837599-b4efa9fd259e?auto=format&fit=crop&q=80&w=1200" 
-                alt="Troop 468 Scouts at Camp Emerald Bay" 
-                className="w-full h-full object-cover"
+                src="https://images.unsplash.com/photo-1510672854261-7bb3978d2347?auto=format&fit=crop&q=80&w=1200" 
+                alt="Troop 468 Scouts Group Outing" 
+                className="w-full h-full object-cover transition-opacity duration-500"
+                onError={(e) => {
+                  // Fallback to a another reliable ID if this one fails
+                  (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1523540939399-141cbff6a8d7?auto=format&fit=crop&q=80&w=1200";
+                }}
               />
             </div>
             {/* Decorative background element */}
